@@ -1,7 +1,7 @@
-# Conffusion
+# Kubeconffusion
 
 ## Description
-Conffusion (Kube**conf**ig **fusion**) is a graphical user interface (GUI) tool designed to simplify the process of merging kubeconfig files. It provides an intuitive and user-friendly interface for managing and merging multiple kubeconfig files into a single config file.
+Kubeconffusion (_kubeconfig fusion_) is a graphical user interface (GUI) tool designed to simplify the process of merging kubeconfig files. It provides an intuitive and user-friendly interface for managing and merging multiple kubeconfig files into a single config file.
 
 ## Features
 - Merge multiple kubeconfig files into a single config file
@@ -11,14 +11,14 @@ Conffusion (Kube**conf**ig **fusion**) is a graphical user interface (GUI) tool 
 - Intuitive and user-friendly interface
 
 ## How to use
-Heads up to [https://azlkiniue.github.io/conffusion](https://azlkiniue.github.io/conffusion/) or [install it by yourself](#local-installation) if you want.
+Heads up to [https://azlkiniue.github.io/kubeconffusion](https://azlkiniue.github.io/kubeconffusion/) or [install it by yourself](#local-installation) if you want.
 
 ## Local Installation
-To start Conffusion in your local machine, follow these steps:
+To start Kubeconffusion in your local machine, follow these steps:
 
 1. Clone the repository:
   ```
-  git clone https://github.com/azlkiniue/conffusion.git
+  git clone https://github.com/azlkiniue/kubeconffusion.git
   ```
 
 2. Install the required dependencies using [pnpm](https://pnpm.io/):
@@ -32,7 +32,7 @@ To start Conffusion in your local machine, follow these steps:
   ```
 
 ## Contributing
-Contributions are welcome! If you would like to contribute to Conffusion, please follow these steps:
+Contributions are welcome! If you would like to contribute to Kubeconffusion, please follow these steps:
 
 1. Fork the repository.
 
