@@ -75,7 +75,7 @@
 			<Sheet.Title>Merge Strategy</Sheet.Title>
 			<Sheet.Description class="text-primary [&>p]:text-justify">
 				<p class="mt-2">
-					Kubeconffusion provides two merge strategies for handling Kubernetes configuration files: <span
+					Konffusion provides two merge strategies for handling Kubernetes configuration files: <span
 						class="font-semibold">Context First</span
 					>
 					and <span class="font-semibold">Context Last</span>. Each strategy determines how
