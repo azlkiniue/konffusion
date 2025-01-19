@@ -60,7 +60,7 @@
 		<Pencil2 class="mr-2 h-4 w-4" />
 		Easy Edit
 	</Dialog.Trigger>
-	<Dialog.Content class="max-h-full overflow-y-auto">
+	<Dialog.Content class="max-h-[80%] max-w-xl overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Easy Edit Kubeconfig</Dialog.Title>
 			<Dialog.Description>
@@ -99,7 +99,7 @@
 				{#each parsedConfig.contexts as context, key}
 					<div class="grid grid-cols-4 items-center gap-4">
 						<Label for="ctx-{key}" class="text-right">Context #{key + 1} Name</Label>
-						<Input id="ctx-{key}" bind:value={context.name} class="col-span-3" />
+						<Input id="ctx-{key}" bind:value={context.name} class="col-span-3 text-ellipsis" />
 						<Label for="ctx-cls-{key}" class="text-right">Context #{key + 1} Cluster Name</Label>
 						<Select.Root
 							portal={null}
@@ -108,7 +108,7 @@
 								e && (context.context.cluster = e.value);
 							}}
 						>
-							<Select.Trigger class="col-span-3">
+							<Select.Trigger class="col-span-3 [&>span]:truncate">
 								<Select.Value placeholder="Select a cluster" />
 							</Select.Trigger>
 							<Select.Content>
@@ -130,7 +130,7 @@
 								e && (context.context.user = e.value);
 							}}
 						>
-							<Select.Trigger class="col-span-3">
+							<Select.Trigger class="col-span-3 [&>span]:truncate">
 								<Select.Value placeholder="Select a user" />
 							</Select.Trigger>
 							<Select.Content>
