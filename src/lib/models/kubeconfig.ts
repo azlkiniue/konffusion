@@ -81,3 +81,12 @@ export function validateKubeConfig(kubeconfig: KubernetesConfig): boolean {
 
   return isValidKubeconfig.every(condition => condition);
 }
+
+export function checkLength(
+  array: Array<unknown>
+): number {
+  if (!array || !Array.isArray(array)) {
+    return 0;
+  }
+  return array.length > 0 ? array.length : 0;
+}
