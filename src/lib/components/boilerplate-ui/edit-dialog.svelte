@@ -123,7 +123,7 @@
 		<SquarePen />
 		Easy Edit
 	</Dialog.Trigger>
-	<Dialog.Content class="max-h-[80%] max-w-2xl overflow-y-auto">
+	<Dialog.Content class="max-h-8/10 max-w-2xl! overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Easy Edit Kubeconfig</Dialog.Title>
 			<Dialog.Description>
@@ -133,8 +133,8 @@
 		</Dialog.Header>
 		<div class="grid gap-4 py-4">
 			{#if isValidKubeconfig && parsedConfig}
-				<Tabs.Root value="cluster" class="w-full">
-					<Tabs.List class="mb-4 grid grid-cols-3">
+				<Tabs.Root value="cluster">
+					<Tabs.List class="mb-4 grid grid-cols-3 w-full">
 						<Tabs.Trigger value="cluster">
 							Clusters ({checkLength(parsedConfig.clusters)})
 						</Tabs.Trigger>
@@ -188,7 +188,7 @@
 												</Button>
 											</div>
 										{:else}
-											<div class="flex items-start justify-between">
+											<div class="flex items-center justify-between">
 												<div>
 													<h4 class="font-medium">{cluster.name}</h4>
 													<p class="text-sm text-muted-foreground">{cluster.cluster.server}</p>
@@ -290,7 +290,7 @@
 													}}
 												>
 													<Select.Trigger
-														class="col-span-3 [&>span]:truncate"
+														class="w-full col-span-3 [&>span]:truncate"
 														placeholder="Select a cluster"
 													>
 														{editData.context[key].context.cluster}
@@ -318,7 +318,7 @@
 													}}
 												>
 													<Select.Trigger
-														class="col-span-3 [&>span]:truncate"
+														class="w-full col-span-3 [&>span]:truncate"
 														placeholder="Select a user"
 													>
 														{editData.context[key].context.user}
@@ -353,7 +353,7 @@
 												</Button>
 											</div>
 										{:else}
-											<div class="flex items-start justify-between">
+											<div class="flex items-center justify-between">
 												<div>
 													<h4 class="font-medium">{context.name}</h4>
 													<p class="text-sm text-muted-foreground">

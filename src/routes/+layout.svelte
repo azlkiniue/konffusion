@@ -1,17 +1,14 @@
 <script lang="ts">
 	import '../app.css';
-	interface Props {
-		children?: import('svelte').Snippet;
-	}
 
-	let { children }: Props = $props();
+	let { children } = $props();
 </script>
 
 <div class="container max-w-5xl mx-auto h-screen">
 	<div class="flex-auto h-full content-center">
-		<h1 class="scroll-m-20 text-4xl tracking-tight lg:text-5xl inline-flex">
+		<h1 class="scroll-m-20 text-4xl tracking-tight lg:text-5xl inline-flex mb-1.5">
 			Konf<div class="font-bold pl-0.5">fusion</div>
 		</h1>
-		{@render children?.()}
+		{@render children()}
 	</div>
 </div>
