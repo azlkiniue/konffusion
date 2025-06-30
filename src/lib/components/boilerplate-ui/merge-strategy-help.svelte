@@ -2,7 +2,7 @@
 	import { codeToHtml } from 'shiki';
 	import { onMount } from 'svelte';
 	import * as Sheet from '$lib/components/ui/sheet';
-	import QuestionMarkCircled from 'svelte-radix/QuestionMarkCircled.svelte';
+	import CircleQuestionMark from '@lucide/svelte/icons/circle-question-mark';
 
 	let snippets: Record<string, string> = {
 		contextFirstInput: `- context:
@@ -55,7 +55,7 @@
   name: kubernetes-admin-3@kubernetes-3`
 	};
 
-	let html: Record<string, string> = {};
+	let html: Record<string, string> = $state({});
 	onMount(async () => {
 		for (const key in snippets) {
 			html[key] = await codeToHtml(snippets[key], {
@@ -68,7 +68,7 @@
 
 <Sheet.Root>
 	<Sheet.Trigger>
-		<QuestionMarkCircled class="ml-1 h-4 w-4 text-muted-foreground hover:text-primary" />
+		<CircleQuestionMark class="ml-1 size-4 text-muted-foreground hover:text-primary" />
 	</Sheet.Trigger>
 	<Sheet.Content class="overflow-y-auto">
 		<Sheet.Header>
