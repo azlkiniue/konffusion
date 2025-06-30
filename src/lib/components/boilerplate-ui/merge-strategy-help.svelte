@@ -68,7 +68,7 @@
 
 <Sheet.Root>
 	<Sheet.Trigger>
-		<CircleQuestionMark class="ml-1 h-4 w-4 text-muted-foreground hover:text-primary" />
+		<CircleQuestionMark class="ml-1 size-4 text-muted-foreground hover:text-primary" />
 	</Sheet.Trigger>
 	<Sheet.Content class="overflow-y-auto">
 		<Sheet.Header>

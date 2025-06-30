@@ -89,7 +89,7 @@
 							<input id="add" type="text" hidden />
 							{#each $added as _, key}
 								<Textarea name={`config-${key}`} class="font-mono" bind:value={$added[key]} />
-								<div class="!mb-3 flex justify-between gap-1">
+								<div class="mb-3! flex justify-between gap-1">
 									<Input
 										type="file"
 										onchange={(e) => readText(e).then((res) => ($added[key] = res))}

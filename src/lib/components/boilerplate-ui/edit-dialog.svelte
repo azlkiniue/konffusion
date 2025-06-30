@@ -295,7 +295,7 @@
 													>
 														{editData.context[key].context.cluster}
 													</Select.Trigger>
-													<Select.Content id="ctx-cls-{key}">
+													<Select.Content>
 														<Select.Group>
 															{#each parsedConfig.clusters as cluster}
 																<Select.Item value={cluster.name} label={cluster.name}>
