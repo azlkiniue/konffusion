@@ -18,18 +18,22 @@
 		type Context
 	} from '$lib/models/kubeconfig';
 	import { base, added, merged } from '$lib/stores';
-	import { Pencil2, Cross2, Check } from 'svelte-radix';
+	import { SquarePen, X, Save } from '@lucide/svelte'
 
-	export let config: string;
-	export let typeConfig: string;
-	let parsedConfig: KubernetesConfig;
-	let isValidKubeconfig: boolean;
+	interface Props {
+		config: string;
+		typeConfig: string;
+	}
+
+	let { config, typeConfig }: Props = $props();
+	let parsedConfig: KubernetesConfig | undefined = $state();
+	let isValidKubeconfig: boolean = $state(false);
 	let previousNames: Record<string, string[]>;
 	let editData: {
 		cluster: Array<Cluster | undefined>;
 		user: Array<User | undefined>;
 		context: Array<Context | undefined>;
-	} = { cluster: [], user: [], context: [] };
+	} = $state({ cluster: [], user: [], context: [] });
 
 	function parseConfig() {
 		try {
@@ -49,6 +53,8 @@
 		newName: string,
 		resourceType: 'cluster' | 'user'
 	) {
+		if (!parsedConfig) return;
+
 		const oldName = previousNames[resourceType][index];
 		parsedConfig[(resourceType + 's') as 'clusters' | 'users'][index].name = newName;
 		parsedConfig.contexts.forEach((context) => {
@@ -66,32 +72,34 @@
 	}
 
 	function handleStartEdit(editType: 'cluster' | 'user' | 'context', index: number) {
-		if (!isValidKubeconfig) {
+		if (!isValidKubeconfig || !parsedConfig) {
 			return;
 		}
+		let parsedConfigSnapshot: KubernetesConfig = structuredClone($state.snapshot(parsedConfig));
 		if (editType === 'cluster') {
-			editData.cluster[index] = structuredClone(parsedConfig.clusters[index]);
+			editData.cluster[index] = parsedConfigSnapshot.clusters[index];
 		} else if (editType === 'user') {
-			editData.user[index] = structuredClone(parsedConfig.users[index]);
+			editData.user[index] = parsedConfigSnapshot.users[index];
 		} else if (editType === 'context') {
-			editData.context[index] = structuredClone(parsedConfig.contexts[index]);
+			editData.context[index] = parsedConfigSnapshot.contexts[index];
 		}
 	}
 
 	function handleSaveEdit(editType: 'cluster' | 'user' | 'context', index: number) {
-		if (!isValidKubeconfig) {
+		if (!isValidKubeconfig || !parsedConfig) {
 			return;
 		}
+		let editDataSnapshot = structuredClone($state.snapshot(editData));
 		if (editType === 'cluster' && editData.cluster[index]) {
-			parsedConfig.clusters[index] = structuredClone(editData.cluster[index]);
+			parsedConfig.clusters[index] = editDataSnapshot.cluster[index] as Cluster;
 			editData.cluster[index] = undefined;
 			handleNameChangeContext(index, parsedConfig.clusters[index].name, 'cluster');
 		} else if (editType === 'user' && editData.user[index]) {
-			parsedConfig.users[index] = structuredClone(editData.user[index]);
+			parsedConfig.users[index] = editDataSnapshot.user[index] as User;
 			editData.user[index] = undefined;
 			handleNameChangeContext(index, parsedConfig.users[index].name, 'user');
 		} else if (editType === 'context' && editData.context[index]) {
-			parsedConfig.contexts[index] = structuredClone(editData.context[index]);
+			parsedConfig.contexts[index] = editDataSnapshot.context[index] as Context;
 			editData.context[index] = undefined;
 		}
 	}
@@ -111,8 +119,8 @@
 </script>
 
 <Dialog.Root>
-	<Dialog.Trigger class={buttonVariants({ variant: 'secondary' })} on:click={() => parseConfig()}>
-		<Pencil2 class="mr-2 h-4 w-4" />
+	<Dialog.Trigger class={buttonVariants({ variant: 'secondary' })} onclick={() => parseConfig()}>
+		<SquarePen />
 		Easy Edit
 	</Dialog.Trigger>
 	<Dialog.Content class="max-h-[80%] max-w-2xl overflow-y-auto">
@@ -124,7 +132,7 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="grid gap-4 py-4">
-			{#if isValidKubeconfig}
+			{#if isValidKubeconfig && parsedConfig}
 				<Tabs.Root value="cluster" class="w-full">
 					<Tabs.List class="mb-4 grid grid-cols-3">
 						<Tabs.Trigger value="cluster">
@@ -142,7 +150,7 @@
 							</div>
 						</div>
 
-						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4"> <!-- clusters -->
+						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4" id="clusters-scrollarea">
 							<div class="space-y-4">
 								{#each parsedConfig.clusters as cluster, key}
 									<Card.Root class="p-4">
@@ -165,18 +173,18 @@
 												<Button
 													variant="ghost"
 													size="sm"
-													on:click={() => (editData.cluster[key] = undefined)}
+													onclick={() => (editData.cluster[key] = undefined)}
 												>
-													<Cross2 class="mr-1 h-4 w-4" />
+													<X />
 													Cancel
 												</Button>
 												<Button
 													variant="default"
 													size="sm"
-													on:click={() => handleSaveEdit('cluster', key)}
+													onclick={() => handleSaveEdit('cluster', key)}
 												>
-													<Check class="mr-1 h-4 w-4" />
-													Done
+													<Save />
+													Save
 												</Button>
 											</div>
 										{:else}
@@ -186,7 +194,7 @@
 													<p class="text-sm text-muted-foreground">{cluster.cluster.server}</p>
 												</div>
 												<div class="flex gap-1">
-													<Button on:click={() => handleStartEdit('cluster', key)}>Edit</Button>
+													<Button onclick={() => handleStartEdit('cluster', key)}>Edit</Button>
 													<!-- <Button>Delete</Button> TODO: Implement delete -->
 												</div>
 											</div>
@@ -202,7 +210,7 @@
 								<h3 class="text-lg font-medium">Users</h3>
 							</div>
 						</div>
-						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4"> <!-- users -->
+						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4" id="users-scrollarea">
 							<div class="space-y-4">
 								{#each parsedConfig.users as user, key}
 									<Card.Root class="p-4">
@@ -219,18 +227,18 @@
 												<Button
 													variant="ghost"
 													size="sm"
-													on:click={() => (editData.user[key] = undefined)}
+													onclick={() => (editData.user[key] = undefined)}
 												>
-													<Cross2 class="mr-1 h-4 w-4" />
+													<X />
 													Cancel
 												</Button>
 												<Button
 													variant="default"
 													size="sm"
-													on:click={() => handleSaveEdit('user', key)}
+													onclick={() => handleSaveEdit('user', key)}
 												>
-													<Check class="mr-1 h-4 w-4" />
-													Done
+													<Save />
+													Save
 												</Button>
 											</div>
 										{:else}
@@ -239,7 +247,7 @@
 													<h4 class="font-medium">{user.name}</h4>
 												</div>
 												<div class="flex gap-1">
-													<Button size="sm" on:click={() => handleStartEdit('user', key)}>
+													<Button size="sm" onclick={() => handleStartEdit('user', key)}>
 														Edit
 													</Button>
 													<!-- <Button size="sm">Delete</Button> TODO: Implement delete -->
@@ -257,7 +265,7 @@
 								<h3 class="text-lg font-medium">Contexts</h3>
 							</div>
 						</div>
-						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4"> <!-- contexts -->
+						<ScrollArea class="mt-4 h-[300px] rounded-md border p-4" id="contexts-scrollarea">
 							<div class="space-y-4">
 								{#each parsedConfig.contexts as context, key}
 									<Card.Root class="p-4">
@@ -270,76 +278,78 @@
 													class="col-span-3"
 												/>
 												<Label for="ctx-cls-{key}" class="text-left text-base">Cluster</Label>
+												<!-- placeholder to remove label warning -->
+												<input id="ctx-cls-{key}" type="text" hidden />
 												<Select.Root
-													portal={null}
-													selected={{
-														value: editData.context[key].context.cluster,
-														label: editData.context[key].context.cluster
-													}}
-													onSelectedChange={(e) => {
-														e &&
+													type="single"
+													bind:value={editData.context[key].context.cluster}
+													onValueChange={(value) => {
+														value &&
 															editData.context[key] &&
-															(editData.context[key].context.cluster = e.value);
+															(editData.context[key].context.cluster = value);
 													}}
 												>
-													<Select.Trigger class="col-span-3 [&>span]:truncate">
-														<Select.Value placeholder="Select a cluster" />
+													<Select.Trigger
+														class="col-span-3 [&>span]:truncate"
+														placeholder="Select a cluster"
+													>
+														{editData.context[key].context.cluster}
 													</Select.Trigger>
-													<Select.Content>
+													<Select.Content id="ctx-cls-{key}">
 														<Select.Group>
 															{#each parsedConfig.clusters as cluster}
-																<Select.Item bind:value={cluster.name} bind:label={cluster.name}>
+																<Select.Item value={cluster.name} label={cluster.name}>
 																	{cluster.name}
 																</Select.Item>
 															{/each}
 														</Select.Group>
 													</Select.Content>
-													<Select.Input id="ctx-cls-{key}" />
 												</Select.Root>
 												<Label for="ctx-usr-{key}" class="text-left text-base">User</Label>
+												<!-- placeholder to remove label warning -->
+												<input id="ctx-usr-{key}" type="text" hidden />
 												<Select.Root
-													portal={null}
-													selected={{
-														value: editData.context[key].context.user,
-														label: editData.context[key].context.user
-													}}
-													onSelectedChange={(e) => {
-														e &&
+													type="single"
+													bind:value={editData.context[key].context.user}
+													onValueChange={(value) => {
+														value &&
 															editData.context[key] &&
-															(editData.context[key].context.user = e.value);
+															(editData.context[key].context.user = value);
 													}}
 												>
-													<Select.Trigger class="col-span-3 [&>span]:truncate">
-														<Select.Value placeholder="Select a user" />
+													<Select.Trigger
+														class="col-span-3 [&>span]:truncate"
+														placeholder="Select a user"
+													>
+														{editData.context[key].context.user}
 													</Select.Trigger>
 													<Select.Content>
 														<Select.Group>
 															{#each parsedConfig.users as user}
-																<Select.Item bind:value={user.name} bind:label={user.name}>
+																<Select.Item value={user.name} label={user.name}>
 																	{user.name}
 																</Select.Item>
 															{/each}
 														</Select.Group>
 													</Select.Content>
-													<Select.Input id="ctx-usr-{key}" />
 												</Select.Root>
 											</div>
 											<div class="mt-2 flex justify-end gap-2">
 												<Button
 													variant="ghost"
 													size="sm"
-													on:click={() => (editData.context[key] = undefined)}
+													onclick={() => (editData.context[key] = undefined)}
 												>
-													<Cross2 class="mr-1 h-4 w-4" />
+													<X />
 													Cancel
 												</Button>
 												<Button
 													variant="default"
 													size="sm"
-													on:click={() => handleSaveEdit('context', key)}
+													onclick={() => handleSaveEdit('context', key)}
 												>
-													<Check class="mr-1 h-4 w-4" />
-													Done
+													<Save />
+													Save
 												</Button>
 											</div>
 										{:else}
@@ -352,7 +362,7 @@
 													</p>
 												</div>
 												<div class="flex gap-1">
-													<Button on:click={() => handleStartEdit('context', key)}>Edit</Button>
+													<Button onclick={() => handleStartEdit('context', key)}>Edit</Button>
 													<!-- <Button>Delete</Button> TODO: Implement delete -->
 												</div>
 											</div>
@@ -372,7 +382,7 @@
 			<Dialog.Close
 				disabled={!isValidKubeconfig}
 				class={buttonVariants({ variant: 'default' })}
-				on:click={() => save()}
+				onclick={() => save()}
 			>
 				Save changes
 			</Dialog.Close>

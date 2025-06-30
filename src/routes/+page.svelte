@@ -8,19 +8,19 @@
 	import { Input } from '$lib/components/ui/input';
 	import { merge } from '$lib/components/common/handle-config-yaml';
 	import { fly } from 'svelte/transition';
-	import Plus from 'svelte-radix/Plus.svelte';
-	import Minus from 'svelte-radix/Minus.svelte';
-	import Download from 'svelte-radix/Download.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Minus from '@lucide/svelte/icons/minus';
+	import Download from '@lucide/svelte/icons/download';
 	import EditDialog from '$lib/components/boilerplate-ui/edit-dialog.svelte';
 	import MergeStrategyHelp from '$lib/components/boilerplate-ui/merge-strategy-help.svelte';
 	import { base, added, merged } from '$lib/stores';
 
-	let activeTab = 'base';
+	let activeTab = $state('base');
 	function changeTab(tab: string) {
 		activeTab = tab;
 	}
 
-	let contextFirst = 'true';
+	let contextFirst = $state('true');
 
 	function reset() {
 		$base = '';
@@ -58,13 +58,13 @@
 							<Label for="base">Base config</Label>
 							<Textarea id="base" class="font-mono" bind:value={$base} />
 							<div class="flex justify-between gap-1">
-								<Input type="file" on:change={(e) => readText(e).then((res) => ($base = res))} />
+								<Input type="file" onchange={(e) => readText(e).then((res) => ($base = res))} />
 								<EditDialog config={$base} typeConfig="base" />
 							</div>
 						</div>
 					</Card.Content>
 					<Card.Footer class="flex justify-end">
-						<Button on:click={() => changeTab('add')}>Next</Button>
+						<Button onclick={() => changeTab('add')}>Next</Button>
 					</Card.Footer>
 				</div>
 			{/if}
@@ -87,28 +87,28 @@
 							<Label for="add">New config(s)</Label>
 							<!-- placeholder to remove label warning -->
 							<input id="add" type="text" hidden />
-							{#each $added as addedItem, key}
-								<Textarea name={`config-${key}`} class="font-mono" bind:value={addedItem} />
+							{#each $added as _, key}
+								<Textarea name={`config-${key}`} class="font-mono" bind:value={$added[key]} />
 								<div class="!mb-3 flex justify-between gap-1">
 									<Input
 										type="file"
-										on:change={(e) => readText(e).then((res) => ($added[key] = res))}
+										onchange={(e) => readText(e).then((res) => ($added[key] = res))}
 									/>
 									<EditDialog config={$added[key]} typeConfig={'added-'.concat(key.toString())} />
 								</div>
 							{/each}
 							<div class="flex justify-start gap-1 pb-1">
-								<Button size="sm" on:click={() => ($added = [...$added, ''])}>
-									<Plus class="mr-2 h-4 w-4" />
+								<Button size="sm" onclick={() => ($added = [...$added, ''])}>
+									<Plus />
 									Add config
 								</Button>
 								<Button
 									size="sm"
 									variant="destructive"
 									disabled={$added.length === 1}
-									on:click={() => ($added = $added.slice(0, -1))}
+									onclick={() => ($added = $added.slice(0, -1))}
 								>
-									<Minus class="mr-2 h-4 w-4" />
+									<Minus />
 									Remove config
 								</Button>
 							</div>
@@ -131,14 +131,13 @@
 									<RadioGroup.Item value="false" id="r2" />
 									<Label for="r2" class="font-normal">Context Last</Label>
 								</div>
-								<RadioGroup.Input name="spacing" />
 							</RadioGroup.Root>
 						</div>
 					</Card.Content>
 					<Card.Footer class="flex justify-between">
-						<Button variant="outline" on:click={() => changeTab('base')}>Previous</Button>
+						<Button variant="outline" onclick={() => changeTab('base')}>Previous</Button>
 						<Button
-							on:click={() => {
+							onclick={() => {
 								changeTab('merged');
 								$merged = merge($base, $added, contextFirst === 'true');
 							}}
@@ -171,7 +170,7 @@
 									class={buttonVariants({ variant: 'default' })}
 									download="config"
 								>
-									<Download class="mr-2 h-4 w-4" />
+									<Download />
 									Download
 								</a>
 								<EditDialog config={$merged} typeConfig="merged" />
@@ -179,8 +178,8 @@
 						</div>
 					</Card.Content>
 					<Card.Footer class="flex justify-between">
-						<Button variant="outline" on:click={() => changeTab('add')}>Previous</Button>
-						<Button on:click={() => reset()}>Start Over</Button>
+						<Button variant="outline" onclick={() => changeTab('add')}>Previous</Button>
+						<Button onclick={() => reset()}>Start Over</Button>
 					</Card.Footer>
 				</div>
 			{/if}
