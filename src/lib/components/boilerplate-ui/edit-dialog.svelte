@@ -18,7 +18,7 @@
 		type Context
 	} from '$lib/models/kubeconfig';
 	import { base, added, merged } from '$lib/stores';
-	import { SquarePen, X, Save } from '@lucide/svelte'
+	import { SquarePen, X, Save, Trash2 } from '@lucide/svelte';
 
 	interface Props {
 		config: string;
@@ -30,6 +30,11 @@
 	let isValidKubeconfig: boolean = $state(false);
 	let previousNames: Record<string, string[]>;
 	let editData: {
+		cluster: Array<Cluster | undefined>;
+		user: Array<User | undefined>;
+		context: Array<Context | undefined>;
+	} = $state({ cluster: [], user: [], context: [] });
+	let deleteData: {
 		cluster: Array<Cluster | undefined>;
 		user: Array<User | undefined>;
 		context: Array<Context | undefined>;
@@ -85,6 +90,19 @@
 		}
 	}
 
+	function handleStartDelete(deleteType: 'cluster' | 'user' | 'context', index: number) {
+		if (!isValidKubeconfig || !parsedConfig) {
+			return;
+		}
+		if (deleteType === 'cluster') {
+			deleteData.cluster[index] = parsedConfig.clusters[index];
+		} else if (deleteType === 'user') {
+			deleteData.user[index] = parsedConfig.users[index];
+		} else if (deleteType === 'context') {
+			deleteData.context[index] = parsedConfig.contexts[index];
+		}
+	}
+
 	function handleSaveEdit(editType: 'cluster' | 'user' | 'context', index: number) {
 		if (!isValidKubeconfig || !parsedConfig) {
 			return;
@@ -101,6 +119,48 @@
 		} else if (editType === 'context' && editData.context[index]) {
 			parsedConfig.contexts[index] = editDataSnapshot.context[index] as Context;
 			editData.context[index] = undefined;
+		}
+	}
+
+	function handleSaveDelete(
+		editType: 'cluster' | 'user' | 'context',
+		index: number,
+		isDeleteAll: boolean = false
+	) {
+		if (!isValidKubeconfig || !parsedConfig) {
+			return;
+		}
+		if (editType === 'cluster' && deleteData.cluster[index]) {
+			parsedConfig.clusters.splice(index, 1);
+			if (isDeleteAll) {
+				// Remove all contexts that reference this cluster
+				parsedConfig.contexts = parsedConfig.contexts.filter(
+					(context) => context.context.cluster !== (deleteData.cluster[index] as Cluster).name
+				);
+			}
+			deleteData.cluster[index] = undefined;
+		} else if (editType === 'user' && deleteData.user[index]) {
+			parsedConfig.users.splice(index, 1);
+			if (isDeleteAll) {
+				// Remove all contexts that reference this user
+				parsedConfig.contexts = parsedConfig.contexts.filter(
+					(context) => context.context.user !== (deleteData.user[index] as User).name
+				);
+			}
+			deleteData.user[index] = undefined;
+		} else if (editType === 'context' && deleteData.context[index]) {
+			parsedConfig.contexts.splice(index, 1);
+			if (isDeleteAll) {
+				// Remove related clusters and users
+				const context = deleteData.context[index] as Context;
+				parsedConfig.clusters = parsedConfig.clusters.filter(
+					(cluster) => cluster.name !== context.context.cluster
+				);
+				parsedConfig.users = parsedConfig.users.filter(
+					(user) => user.name !== context.context.user
+				);
+			}
+			deleteData.context[index] = undefined;
 		}
 	}
 
@@ -187,6 +247,44 @@
 													Save
 												</Button>
 											</div>
+										{:else if deleteData.cluster[key]}
+											<div class="flex w-full flex-col gap-1">
+												<p class="text-red-500 font-medium">
+													Are you sure you want to delete this cluster?
+												</p>
+												<p>
+													Cluster Name:
+													<span class="font-semibold">
+														{deleteData.cluster[key].name}
+													</span>
+												</p>
+												<div class="mt-2 flex justify-end gap-2">
+													<Button
+														variant="ghost"
+														size="sm"
+														onclick={() => (deleteData.cluster[key] = undefined)}
+													>
+														<X />
+														Cancel
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('cluster', key, true)}
+													>
+														<Trash2 />
+														Delete, with related contexts
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('cluster', key)}
+													>
+														<Trash2 />
+														Delete
+													</Button>
+												</div>
+											</div>
 										{:else}
 											<div class="flex items-center justify-between">
 												<div>
@@ -195,7 +293,10 @@
 												</div>
 												<div class="flex gap-1">
 													<Button onclick={() => handleStartEdit('cluster', key)}>Edit</Button>
-													<!-- <Button>Delete</Button> TODO: Implement delete -->
+													<Button
+														variant="destructive"
+														onclick={() => handleStartDelete('cluster', key)}>Delete</Button
+													>
 												</div>
 											</div>
 										{/if}
@@ -241,6 +342,41 @@
 													Save
 												</Button>
 											</div>
+										{:else if deleteData.user[key]}
+											<div class="flex w-full flex-col gap-1">
+												<p class="text-red-500 font-medium">
+													Are you sure you want to delete this user?
+												</p>
+												<p>
+													User Name: <span class="font-semibold">{deleteData.user[key].name}</span>
+												</p>
+												<div class="mt-2 flex justify-end gap-2">
+													<Button
+														variant="ghost"
+														size="sm"
+														onclick={() => (deleteData.user[key] = undefined)}
+													>
+														<X />
+														Cancel
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('user', key, true)}
+													>
+														<Trash2 />
+														Delete, with related contexts
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('user', key)}
+													>
+														<Trash2 />
+														Delete
+													</Button>
+												</div>
+											</div>
 										{:else}
 											<div class="flex items-center justify-between">
 												<div>
@@ -250,7 +386,13 @@
 													<Button size="sm" onclick={() => handleStartEdit('user', key)}>
 														Edit
 													</Button>
-													<!-- <Button size="sm">Delete</Button> TODO: Implement delete -->
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleStartDelete('user', key)}
+													>
+														Delete
+													</Button>
 												</div>
 											</div>
 										{/if}
@@ -352,6 +494,44 @@
 													Save
 												</Button>
 											</div>
+										{:else if deleteData.context[key]}
+											<div class="flex w-full flex-col gap-1">
+												<p class="text-red-500 font-medium">
+													Are you sure you want to delete this context?
+												</p>
+												<p>
+													Context Name:
+													<span class="font-semibold">
+														{deleteData.context[key].name}
+													</span>
+												</p>
+												<div class="mt-2 flex justify-end gap-2">
+													<Button
+														variant="ghost"
+														size="sm"
+														onclick={() => (deleteData.context[key] = undefined)}
+													>
+														<X />
+														Cancel
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('context', key, true)}
+													>
+														<Trash2 />
+														Delete, with related clusters and users
+													</Button>
+													<Button
+														variant="destructive"
+														size="sm"
+														onclick={() => handleSaveDelete('context', key)}
+													>
+														<Trash2 />
+														Delete
+													</Button>
+												</div>
+											</div>
 										{:else}
 											<div class="flex items-center justify-between">
 												<div>
@@ -363,7 +543,10 @@
 												</div>
 												<div class="flex gap-1">
 													<Button onclick={() => handleStartEdit('context', key)}>Edit</Button>
-													<!-- <Button>Delete</Button> TODO: Implement delete -->
+													<Button
+														variant="destructive"
+														onclick={() => handleStartDelete('context', key)}>Delete</Button
+													>
 												</div>
 											</div>
 										{/if}
