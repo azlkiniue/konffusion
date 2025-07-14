@@ -19,6 +19,7 @@
 	} from '$lib/models/kubeconfig';
 	import { base, added, merged } from '$lib/stores';
 	import { SquarePen, X, Save, Trash2 } from '@lucide/svelte';
+	import * as x509 from '@peculiar/x509';
 
 	interface Props {
 		config: string;
@@ -176,6 +177,25 @@
 			$added[index] = YAML.stringify(parsedConfig);
 		}
 	}
+
+	function readCert(cert: string) {
+		let result: x509.X509Certificate | undefined;
+		if (!cert) return 'No certificate provided';
+
+		// convert base64 to PEM format using atob
+		const decodedCert = atob(cert);
+		// Remove PEM header and footer from decodedCert
+		const lines = decodedCert.split('\n');
+		const certBody = lines.slice(1, -2).join('');
+
+		try {
+			result = new x509.X509Certificate(certBody);
+		} catch (e) {
+			result = undefined;
+			return 'Failed to parse certificate';
+		}
+		return `Valid from ${result?.notBefore.toLocaleDateString()} to ${result?.notAfter.toLocaleDateString()}`;
+	}
 </script>
 
 <Dialog.Root>
@@ -289,7 +309,9 @@
 											<div class="flex items-center justify-between">
 												<div>
 													<h4 class="font-medium">{cluster.name}</h4>
-													<p class="text-sm text-muted-foreground">{cluster.cluster.server}</p>
+													<p class="text-sm text-muted-foreground">
+														Address: {cluster.cluster.server}
+													</p>
 												</div>
 												<div class="flex gap-1">
 													<Button onclick={() => handleStartEdit('cluster', key)}>Edit</Button>
@@ -381,14 +403,14 @@
 											<div class="flex items-center justify-between">
 												<div>
 													<h4 class="font-medium">{user.name}</h4>
+													<p class="text-sm text-muted-foreground">
+														{readCert(user.user?.['client-certificate-data'] || '')}
+													</p>
 												</div>
 												<div class="flex gap-1">
-													<Button size="sm" onclick={() => handleStartEdit('user', key)}>
-														Edit
-													</Button>
+													<Button onclick={() => handleStartEdit('user', key)}>Edit</Button>
 													<Button
 														variant="destructive"
-														size="sm"
 														onclick={() => handleStartDelete('user', key)}
 													>
 														Delete
