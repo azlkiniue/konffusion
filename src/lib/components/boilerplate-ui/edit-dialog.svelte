@@ -186,7 +186,12 @@
 		const decodedCert = atob(cert);
 		// Remove PEM header and footer from decodedCert
 		const lines = decodedCert.split('\n');
-		const certBody = lines.slice(1, -2).join('');
+		if (!lines[0].startsWith('-----BEGIN')) {
+			// If the first line does not start with '-----BEGIN', it is not a valid PEM certificate
+			return 'Invalid certificate format';
+		}
+		const firstCertificateEndIndex = lines.findIndex(line => line.startsWith('-----END'));
+		const certBody = lines.slice(1, firstCertificateEndIndex).join('');
 
 		try {
 			result = new x509.X509Certificate(certBody);
